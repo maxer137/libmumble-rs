@@ -10,7 +10,8 @@ crate-type = ["staticlib"]
 
 [dependencies]
 chrono = "0.4.41"
+cxx = { version = "1.0.168", features = ["c++14", "c++17", "c++20"] }
 ipnet = "2.11.0"
 
 [build-dependencies]
-cbindgen = "0.29"
+cxx-build = "1.0.168"
