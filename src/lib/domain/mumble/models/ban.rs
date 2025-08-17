@@ -1,19 +1,29 @@
-use chrono::{DateTime, Duration, Local, Utc};
+use chrono::{DateTime, Duration, Utc};
 use ipnet::IpNet;
-use std::fmt;
 use std::hash::{Hash, Hasher};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Ban {
     pub network: IpNet,
-    pub username: String,
-    pub hash: String,
-    pub reason: String,
-    pub start: DateTime<Utc>,
+    pub username: Option<String>,
+    pub hash: Option<String>,
+    pub reason: Option<String>,
     pub duration: Option<Duration>,
+    pub start: DateTime<Utc>,
 }
 
 impl Ban {
+    pub fn new(addr: IpNet) -> Self {
+        Self {
+            network: addr,
+            username: None,
+            hash: None,
+            reason: None,
+            duration: None,
+            start: Utc::now(),
+        }
+    }
+
     pub fn is_expired(&self) -> bool {
         // If no Duration is given. It's forever
         if self.duration.is_none() {
@@ -21,38 +31,6 @@ impl Ban {
         }
         let expiry_time = self.start + self.duration.unwrap();
         Utc::now() > expiry_time
-    }
-
-    pub fn is_valid(&self) -> bool {
-        !self.username.is_empty() || !self.hash.is_empty()
-    }
-}
-
-impl fmt::Display for Ban {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if self.duration.is_none() {
-            write!(
-                f,
-                r#"Net: "{}", Username: "{}", Reason: "{}", BanStart: "{}", (permanent)"#,
-                self.network,
-                self.username,
-                self.reason,
-                self.start.with_timezone(&Local).format("%Y-%m-%d %H:%M:%S"),
-            )
-        } else {
-            let ban_start_local = self.start.with_timezone(&Local);
-            let ban_end_local = ban_start_local + self.duration.unwrap();
-
-            write!(
-                f,
-                r#"Net: "{}", Username: "{}", Reason: "{}", BanStart: "{}", BanEnd: "{}""#,
-                self.network,
-                self.username,
-                self.reason,
-                ban_start_local.format("%Y-%m-%d %H:%M:%S"),
-                ban_end_local.format("%Y-%m-%d %H:%M:%S"),
-            )
-        }
     }
 }
 
